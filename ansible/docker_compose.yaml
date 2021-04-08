@@ -1,0 +1,10 @@
+- name: Docker compose
+  hosts: vm1
+  tasks:
+    - name: Transfer the yaml file
+      copy: src=./docker/docker-compose.yaml dest=/home/mladents mode=0777
+    - name: docker_compose
+      #command: 'export HOMEDIR="/home/mladents" && docker-compose up -d'
+      shell: |
+        export HOMEDIR="/home/mladents"
+        docker-compose up -d

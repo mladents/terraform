@@ -1,0 +1,21 @@
+- hosts: vm1
+  tasks:
+    - name: Install a list of packages
+      become: true
+      become_user: root
+      apt:
+        pkg:
+        - docker
+        - pdns-backend-pgsql
+        - postgresql-client-11
+        - pdns-tools
+        - dnsutils
+        - jq
+        update_cache: yes
+        state: present
+
+    - name: Remove useless packages from the cache
+      become: true
+      become_user: root
+      apt:
+        autoclean: yes 

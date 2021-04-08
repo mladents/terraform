@@ -1,0 +1,14 @@
+[all:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+ansible_user='mladents'
+
+
+[jumpbox]
+__JUMPBOX__ ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+
+[vm1]
+192.168.178.125
+
+[vmpool1]
+__VMPOOL1__
+

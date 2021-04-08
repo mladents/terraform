@@ -1,0 +1,15 @@
+- name: System preparation
+  hosts: vm1
+#  become: yes
+  tasks:
+    - name: Transfer the script
+      copy: src=./scripts/prep_system.sh dest=/home/mladents mode=0777
+    - name: Transfer the script
+      copy: src=./scripts/prep_docker.sh dest=/home/mladents mode=0777
+    - name: sys_prep
+      command: sh /home/mladents/prep_system.sh
+      become: yes
+    - name: docker_prep
+      command: sh /home/mladents/prep_docker.sh
+
+

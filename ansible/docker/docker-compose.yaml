@@ -1,0 +1,102 @@
+# Docker Compose
+# export HOMEDIR="/home/mladents"
+# Our `docker-compose.yml` file will use the above variables
+# docker-compose up -d
+
+
+## Portainer
+version: '3.3'
+services:
+    portainer:
+        ports:
+            - '9000:9000'
+            - '8000:8000'
+        container_name: portainer
+        restart: always
+        volumes:
+            - '/var/run/docker.sock:/var/run/docker.sock'
+            - '${HOMEDIR}/configs/portainer:/data'
+        image: portainer/portainer-ce
+
+    vpn:
+        devices:
+            - /dev/net/tun
+        cap_add:
+            - NET_ADMIN
+        container_name: vpn
+        restart: always
+        ports:
+            - '51820:51820/udp'
+            - '9091:9091'
+            - '51413:51413'
+            - '51413:51413/udp'
+        environment:
+            - ROUTE=192.168.178.0/24
+        volumes:
+            - '${HOMEDIR}/configs/vpn:/vpn'
+        image: dperson/openvpn-client
+
+    # wireguard:
+    #     image: ghcr.io/linuxserver/wireguard
+    #     container_name: wireguard
+    #     cap_add:
+    #     - NET_ADMIN
+    #     - SYS_MODULE
+    #     environment:
+    #     - PUID=1000
+    #     - PGID=1000
+    #     - TZ=Europe/Berlin
+    #     volumes:
+    #     - ${HOMEDIR}/configs/wg:/config
+    #     - /lib/modules:/lib/modules
+    #     ports:
+    #     - 51820:51820/udp
+    #     - 9091:9091
+    #     - 51413:51413
+    #     - 51413:51413/udp
+    #     sysctls:
+    #     - net.ipv4.conf.all.src_valid_mark=1
+    #     restart: unless-stopped
+
+    transmission:
+        image: ghcr.io/linuxserver/transmission
+        container_name: transmission
+        depends_on:
+        - vpn
+        network_mode: service:vpn
+        environment:
+        - PUID=1000
+        - PGID=1000
+        - TZ=Europe/London
+        volumes:
+        - ${HOMEDIR}/configs/transmission/config:/config
+        - /mnt/torrent_data:/downloads
+        - /mnt/torrent_data/watchTorrent:/watch
+        restart: unless-stopped
+
+    adguardhome:
+        container_name: adguardhome
+        restart: always
+        volumes:
+            - '${HOMEDIR}/configs/adguard/workdir:/opt/adguardhome/work'
+            - '${HOMEDIR}/configs/adguard/conf:/opt/adguardhome/conf'
+        ports:
+            - '53:53/tcp'
+            - '53:53/udp'
+            - '67:67/udp'
+            - '853:853/tcp'
+            - '3000:3000/tcp'
+            - '8080:8080/tcp'
+        image: adguard/adguardhome
+
+    jellyfin:
+        container_name: jellyfin
+        volumes:
+            - '${HOMEDIR}/configs/jellyfin/config:/config'
+            - '${HOMEDIR}/configs/jellyfin/cache:/cache'
+            - /mnt/torrent_data:/media
+        network_mode: host
+        image: 'jellyfin/jellyfin:latest'
+        restart: unless-stopped
+
+
