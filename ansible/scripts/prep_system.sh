@@ -3,9 +3,7 @@
 # Script tested on Debian 10 !!!
 
 # Vars
-USRNM="mladents"
-# NAS=srbpc
-# DRIVE=d
+USRNM="User"
 
 # Repo update
 apt-get update
@@ -40,14 +38,6 @@ echo "================"
 mkdir -p /mnt/torrent_data
 chmod 777 /mnt/torrent_data
 
-# CIFS add credentials. Fill/Edit username.password fields below
-# cat << 'EOL' >> /etc/cifs-credentials
-# username=$windows_user
-# password=$windows_user_password
-# EOL
-# Mount data
-# mount -t cifs vers=3.0 -o credentials=/etc/cifs-credentials //$NAS/$DRIVE /mnt/torrent_data
-# echo "//$NAS/$DRIVE /mnt/torrent_data cifs credentials=/etc/cifs-credentials,vers=3.0,dir_mode=0777,file_mode=0777 0 0" >> /etc/fstab
 
 # Add line to fstab for automount on startup. Destination is NAS (nfs).
 # NOTE: I just had this issue with NFS mounts in fstab. It turned out that, on boot, the mounts were attempted when the network was not ready yet.

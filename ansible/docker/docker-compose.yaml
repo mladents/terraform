@@ -1,5 +1,5 @@
 # Docker Compose
-# export HOMEDIR="/home/mladents"
+# export HOMEDIR="/home/User"
 # Our `docker-compose.yml` file will use the above variables
 # docker-compose up -d
 
