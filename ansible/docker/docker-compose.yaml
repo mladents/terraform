@@ -1,5 +1,5 @@
 # Docker Compose
-# export HOMEDIR="/home/User"
+# export HOMEDIR="/home/mladents"
 # Our `docker-compose.yml` file will use the above variables
 # docker-compose up -d
 
@@ -97,6 +97,6 @@ services:
             - /mnt/torrent_data:/media
         network_mode: host
         image: 'jellyfin/jellyfin:latest'
-        restart: unless-stopped
+        restart: always
 
 

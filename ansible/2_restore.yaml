@@ -1,0 +1,65 @@
+- name: Restoring stuff
+  hosts: vm1
+  tasks:
+    - name: Stop docker and delete configs for Transmission, AdGuard and Jellyfin
+      shell: |
+        docker ps | awk 'NR!=1 {print $1}' | xargs -n 1 docker stop
+        rm -rf /home/mladents/configs/transmission/config/
+        rm -rf /home/mladents/configs/adguard/workdir/
+        rm -rf /home/mladents/configs/adguard/conf/
+        rm -rf /home/mladents/configs/jellyfin/cache/
+        rm -rf /home/mladents/configs/jellyfin/config/
+
+    - name: Restore ssh keys
+      shell: |
+        rm -rf /tmp/home
+        tar -xzvf /mnt/torrent_data/_backups/{{ host }}/{{ date }}/backup-sshKeys-{{ date }}.tar.gz -C /tmp/
+        cp /tmp/home/mladents/.ssh/id_rsa /home/mladents/.ssh/
+        cp /tmp/home/mladents/.ssh/id_rsa.pub /home/mladents/.ssh/
+
+    - name: Restore scripts folder
+      shell: |
+        rm -rf /home/mladents/scripts
+        tar -xzvf /mnt/torrent_data/_backups/"{{ host }}"/"{{ date }}"/backup-scripts-"{{ date }}".tar.gz -C /tmp/
+        cp -rf /tmp/home/mladents/scripts /home/mladents/scripts
+
+    - name: Restore Transmission folder
+      shell: |
+        tar -xzvf /mnt/torrent_data/_backups/"{{ host }}"/"{{ date }}"/backup-configTransmission-"{{ date }}".tar.gz -C /tmp/
+        cp -rf /tmp/home/mladents/configs/transmission/config /home/mladents/configs/transmission/config
+
+    - name: Restore ADGuard folders
+      shell: |
+        tar -xzvf /mnt/torrent_data/_backups/"{{ host }}"/"{{ date }}"/backup-configAdGuard-"{{ date }}".tar.gz -C /tmp/
+        cp -rf /tmp/home/mladents/configs/adguard/workdir /home/mladents/configs/adguard/workdir
+        cp -rf /tmp/home/mladents/configs/adguard/conf /home/mladents/configs/adguard/conf
+
+    - name: Restore Jellyfin folders
+      shell: |
+        tar -xzvf /mnt/torrent_data/_backups/"{{ host }}"/"{{ date }}"/backup-configJellyfin-"{{ date }}".tar.gz -C /tmp/
+        cp -rf /tmp/home/mladents/configs/jellyfin/cache /home/mladents/configs/jellyfin/cache
+        cp -rf /tmp/home/mladents/configs/jellyfin/config /home/mladents/configs/jellyfin/config
+
+    - name: Cleanup tmp folder
+      shell: |
+        rm -rf /tmp/home
+
+    - name: Cronjob for infra-check
+      cron:
+        name: "infra-check"
+        minute: "*/5"
+#        hour: "5,2"
+        job: "/home/mladents/scripts/infra_check.sh > /home/mladents/scripts/infra_check.log 2>&1"
+
+    - name: Cronjob for backup - root needed
+      become: yes
+      cron:
+        name: "backup"
+        minute: "3"
+        hour: "3"
+        day: "3"
+#        hour: "5,2"
+        job: "/home/mladents/scripts/backup.sh"
+
+
+
