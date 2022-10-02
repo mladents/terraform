@@ -1,0 +1,95 @@
+# Docker Compose
+# export HOMEDIR="/home/mladents"
+# Our `docker-compose.yml` file will use the above variables
+# docker-compose up -d
+
+
+## Portainer
+version: '3.3'
+
+networks:
+  proxy:
+    external: true
+
+services:
+    portainer:
+        ports:
+            - '9000:9000'
+            - '8000:8000'
+        container_name: portainer
+        restart: always
+        networks:
+            - proxy
+        volumes:
+            - '/var/run/docker.sock:/var/run/docker.sock'
+            - '${HOMEDIR}/configs/portainer:/data'
+        image: portainer/portainer-ce
+
+    vpn:
+        devices:
+            - /dev/net/tun
+        cap_add:
+            - NET_ADMIN
+        container_name: ovpnTS
+        restart: always
+        ports:
+#            - '51820:51820/udp'
+            - '9091:9091'
+            - '51413:51413'
+            - '51413:51413/udp'
+        environment:
+            - ROUTE=192.168.178.0/24
+        volumes:
+            - '${HOMEDIR}/configs/vpn:/vpn'
+        image: dperson/openvpn-client
+
+    wireguard:
+        image: ghcr.io/linuxserver/wireguard
+        container_name: wireguardSTR
+        cap_add:
+        - NET_ADMIN
+        - SYS_MODULE
+        environment:
+        - PUID=1000
+        - PGID=1000
+        - TZ=Europe/London
+        - SERVERURL=k031bhz1duimiog7.myfritz.net
+        - SERVERPORT=51820
+        - PEERS=laptop,mac,desktop,mobile,stick
+        - PEERDNS=auto
+        - INTERNAL_SUBNET=10.0.10.0
+        - ALLOWEDIPS=0.0.0.0/0
+        volumes:
+        - /home/mladents/configs/wireguard:/config
+        - /lib/modules:/lib/modules
+        ports:
+        - 51820:51820/udp
+        sysctls:
+        - net.ipv4.conf.all.src_valid_mark=1
+        restart: always
+
+    transmission:
+        image: ghcr.io/linuxserver/transmission
+        container_name: transmissionOVPN
+        depends_on:
+        - vpn
+        network_mode: service:vpn
+        environment:
+        - PUID=1000
+        - PGID=1000
+        - TZ=Europe/London
+        volumes:
+        - ${HOMEDIR}/configs/transmission/config:/config
+        - /mnt/torrent_data:/downloads
+        - /mnt/torrent_data/watchTorrent:/watch
+        restart: unless-stopped
+
+    jellyfin:
+        container_name: jellyfin
+        volumes:
+            - '${HOMEDIR}/configs/jellyfin/config:/config'
+            - '${HOMEDIR}/configs/jellyfin/cache:/cache'
+            - /mnt/torrent_data:/media
+        network_mode: host
+        image: 'jellyfin/jellyfin:latest'
+        restart: unless-stopped
